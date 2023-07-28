@@ -39,10 +39,8 @@ class EzplaySDK {
   }
 
   //创建并初始化播放器
-  static Future<bool> initPlayer(
-      String deviceSerial, String verifyCode, int cameraNo) {
-    return EzplayCameraPlatform.instance
-        .initPlayer(deviceSerial, verifyCode, cameraNo);
+  static Future<bool> initPlayer(String playUrl, String playType) {
+    return EzplayCameraPlatform.instance.initPlayer(playUrl, playType);
   }
 
   //开启直播
@@ -96,5 +94,68 @@ class EzplaySDK {
   //获取当前回放时间点，如果回放开始时间8:00，结束时间9:00，getOSDTime时间为8:30，那么播放进度为50%
   static Future<int> getOSDTime() {
     return EzplayCameraPlatform.instance.getOSDTime();
+  }
+}
+
+//播放类型
+enum PlayType {
+  //直播
+  live,
+  //回放
+  rec,
+}
+
+// 清晰度
+enum DefinitionType {
+  //标清
+  standard,
+  //高清
+  hd,
+}
+
+// 清晰度
+enum PlaybackSourceType {
+  //本地存储
+  local,
+  //云存储
+  cloud,
+}
+
+class EzopenParam {
+  // 播放类型
+  PlayType playType = PlayType.live;
+
+  // 验证码
+  String? code;
+  // 域名
+  String domainName = 'open.ezviz.com';
+  // 序列号
+  String serialNumber;
+  // 通道号
+  int channelNumber = 1;
+  // 清晰度
+  DefinitionType definition = DefinitionType.standard;
+
+  // 回放源
+  PlaybackSourceType? playbackSource;
+
+  // 开始时间
+  String? beginTime;
+  // 结束时间
+  String? endTime;
+
+  EzopenParam(this.serialNumber, this.channelNumber);
+
+  String gerUrl() {
+    if (playType == PlayType.live) {
+      return 'ezopen://${code == null ? '' : '$code@'}$domainName/$serialNumber/$channelNumber${definition == DefinitionType.standard ? '' : '.hd'}.live';
+    } else {
+      String playbackSourceType = playbackSource == null
+          ? ''
+          : playbackSource == PlaybackSourceType.cloud
+              ? '.local'
+              : '.cloud';
+      return 'ezopen://${code == null ? '' : '$code@'}$domainName/$serialNumber/$channelNumber${definition == DefinitionType.standard ? '' : '.hd'}$playbackSourceType.rec?begin=$beginTime&end=$beginTime';
+    }
   }
 }

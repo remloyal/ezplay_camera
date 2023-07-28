@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ezplay_camera/ezplay_camera.dart';
+import 'package:ezplay_camera/ezplay_plugin.dart';
 import 'package:ezplay_camera_example/popup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +25,7 @@ class _MyAppState extends State<MyApp> {
           appBar: AppBar(
             title: const Text('乐橙云播放器'),
           ),
-          body: EZOpenPage()),
+          body: const EZOpenPage()),
     );
   }
 }
@@ -52,10 +53,15 @@ class _EZOpenPageState extends State<EZOpenPage> {
   TextEditingController deviceSerialController = TextEditingController();
   TextEditingController verifyCodeController = TextEditingController();
   TextEditingController cameraNoController = TextEditingController();
+
+  late EzopenParam ezopenParam;
+
   @override
   void initState() {
     super.initState();
     _controller = EzplayController(appKey: appKey, accessToken: accessToken);
+    _controller.initAppKey();
+    ezopenParam = EzopenParam('D75154226', 1);
 
     appKeyController.text = appKey;
     accessTokenController.text = accessToken;
@@ -106,6 +112,7 @@ class _EZOpenPageState extends State<EZOpenPage> {
         ),
         TextButton(
             onPressed: () {
+              // _controller.startRealPlay();
               Navigator.push(
                   context,
                   Popup(
@@ -138,9 +145,7 @@ class _EZOpenPageState extends State<EZOpenPage> {
   play() {
     return EzplayView(
       controller: _controller,
-      deviceSerial: deviceSerial,
-      verifyCode: verifyCode,
-      cameraNo: 1,
+      param: ezopenParam,
     );
   }
 }

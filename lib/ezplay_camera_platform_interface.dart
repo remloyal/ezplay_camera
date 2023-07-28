@@ -39,8 +39,7 @@ abstract class EzplayCameraPlatform extends PlatformInterface {
     throw UnimplementedError('destroyLib() has not been implemented.');
   }
 
-  Future<bool> initPlayer(
-      String deviceSerial, String verifyCode, int cameraNo) {
+  Future<bool> initPlayer(String playUrl, String playType) {
     throw UnimplementedError('initPlayer() has not been implemented.');
   }
 

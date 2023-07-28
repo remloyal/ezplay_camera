@@ -2,6 +2,7 @@ package com.ezplay.ezplay_camera;
 
 import android.content.Context;
 import android.view.SurfaceView;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +23,7 @@ public class EzplayViewFactory extends PlatformViewFactory  {
 
     private Map<Integer, SurfaceView> views = new HashMap<>();
 
+    private View playView;
     public EzplayViewFactory( BinaryMessenger channel) {
         super(StandardMessageCodec.INSTANCE);
     }
@@ -33,10 +35,15 @@ public class EzplayViewFactory extends PlatformViewFactory  {
         Log.d(TAG, "创建SurfaceView, viewId: " + viewId);
         EzplayView view = new EzplayView(context,viewId,args);
         views.put(viewId, view.getSurfaceView());
+        playView = view.getSurfaceView();
         return view;
     }
 
     public SurfaceView getSurfaceView(Integer viewId) {
         return views.get(viewId);
+    }
+
+    public View getPlayView() {
+        return playView;
     }
 }

@@ -31,12 +31,10 @@ class MethodChannelEzplayCamera extends EzplayCameraPlatform {
   }
 
   @override
-  Future<bool> initPlayer(
-      String deviceSerial, String verifyCode, int cameraNo) async {
+  Future<bool> initPlayer(String playUrl, String playType) async {
     Map<String, dynamic> args = {
-      'deviceSerial': deviceSerial,
-      'verifyCode': verifyCode,
-      'cameraNo': cameraNo,
+      'playUrl': playUrl,
+      'playType': playType,
     };
     return await methodChannel.invokeMethod('initPlayer', args);
   }

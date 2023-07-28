@@ -3,16 +3,9 @@ import 'dart:io';
 import 'package:ezplay_camera/ezplay_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 
 import 'ezplay_camera_platform_interface.dart';
-
-class EzplayCamera {
-  Future<bool> initAppKey(String appKey) {
-    return EzplayCameraPlatform.instance.initAppKey(appKey);
-  }
-}
 
 // 控制器
 class EzplayController {
@@ -21,24 +14,25 @@ class EzplayController {
   final bool? logEnabled;
   String accessToken;
 
+  late int viewId;
+
   EzplayController(
       {required this.appKey,
       required this.accessToken,
       this.logEnabled = false});
 
-  Future<bool> initAppKey(String appKey) {
-    return EzplayCameraPlatform.instance.initAppKey(appKey);
-  }
-
-  Future<void> initPlayer(
-      String deviceSerial, String verifyCode, int cameraNo) async {
+  Future<bool> initAppKey() async {
     await EzplaySDK.setLogEnabled(true);
-    await EzplaySDK.initAppKey(appKey);
     await EzplaySDK.setAccessToken(accessToken);
-    await EzplaySDK.initPlayer(deviceSerial, verifyCode, cameraNo);
+    return EzplaySDK.initAppKey(appKey);
   }
 
-  void startRealPlay(int viewId) {
+  Future<void> initPlayer(String playUrl, PlayType playType) async {
+    await EzplaySDK.initPlayer(
+        playUrl, playType == PlayType.live ? 'live' : 'rec');
+  }
+
+  void startRealPlay() {
     EzplaySDK.startRealPlay(viewId);
   }
 
@@ -55,16 +49,14 @@ class EzplayController {
 class EzplayView extends StatefulWidget {
   final EzplayController controller;
 
-  final String deviceSerial;
-  final String verifyCode;
-  final int cameraNo;
+  final EzopenParam param;
+  final String playUrl;
 
   const EzplayView(
       {super.key,
       required this.controller,
-      required this.deviceSerial,
-      required this.verifyCode,
-      required this.cameraNo});
+      required this.param,
+      this.playUrl = ''});
 
   @override
   State<EzplayView> createState() => _EzplayViewState();
@@ -72,24 +64,21 @@ class EzplayView extends StatefulWidget {
 
 class _EzplayViewState extends State<EzplayView> {
   late EzplayController _controller;
-  late bool _playing;
-  late bool _mute;
   // late bool _landscape;
-  late StateSetter _toolbarSetter;
 
   late Future<void> _initFuture;
 
-  late int? _viewId;
+  late EzopenParam _ezopenParam;
 
   @override
   void initState() {
     super.initState();
+    _ezopenParam = widget.param;
+
     _controller = widget.controller;
-    _playing = false;
-    _mute = false;
     // _landscape = false;
-    _initFuture = _controller.initPlayer(
-        widget.deviceSerial, widget.verifyCode, widget.cameraNo);
+    _initFuture =
+        _controller.initPlayer(_ezopenParam.gerUrl(), _ezopenParam.playType);
   }
 
   @override
@@ -119,7 +108,7 @@ class _EzplayViewState extends State<EzplayView> {
                   child: _EZOpenView(
                     onPlatformViewCreated: (int viewId) {
                       // _portraitId = viewId;
-                      _viewId = viewId;
+                      _controller.viewId = viewId;
                       // _controller.startRealPlay(viewId);
                     },
                   ),

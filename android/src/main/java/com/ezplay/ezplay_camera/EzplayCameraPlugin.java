@@ -6,6 +6,8 @@ import android.os.Message;
 
 import androidx.annotation.NonNull;
 
+import com.ezvizuikit.open.EZUIKit;
+import com.ezvizuikit.open.EZUIPlayer;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.openapi.EZConstants;
 import com.videogo.openapi.EZOpenSDK;
@@ -34,8 +36,10 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
     private EzplayViewFactory factory;
     private EZPlayer ezPlayer = null;
 
-    private String deviceSerial;
-    private int cameraNo;
+    private String playUrl;
+    private String playType;
+
+    private EZUIPlayer ezuiPlayer;
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -43,6 +47,9 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
         channel.setMethodCallHandler(this);
         factory = new EzplayViewFactory(binding.getBinaryMessenger());
         application = (Application) binding.getApplicationContext();
+
+        ezuiPlayer = new EZUIPlayer(application);
+
         binding.getPlatformViewRegistry().registerViewFactory("ezplay_view", factory);
 
     }
@@ -51,62 +58,57 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         try {
             String method = call.method;
-            if ("initAppKey".equals(method)) {
-                String app_key = call.arguments();
-                boolean b = EZOpenSDK.initLib(application, app_key);
-                result.success(b);
-            }
             if ("setLogEnabled".equals(method)) {
                 Boolean enable = call.arguments();
                 if (enable != null) {
-                    EZOpenSDK.showSDKLog(enable);
+                    EZUIKit.setDebug(enable);
                 }
                 result.success(enable);
             } else if ("initAppKey".equals(method)) {
                 String app_key = call.arguments();
-                boolean b = EZOpenSDK.initLib(application, app_key);
-                result.success(b);
+                EZUIKit.initWithAppKey(application, app_key);
+                result.success(true);
+
             } else if ("setAccessToken".equals(method)) {
                 String AccessToken = call.arguments();
-                EZOpenSDK.getInstance().setAccessToken(AccessToken);
+                EZUIKit.setAccessToken(AccessToken);
             } else if ("destroyLib".equals(method)) {
                 EZOpenSDK.finiLib();
             } else if (method.equals("initPlayer")) {
-                deviceSerial = call.argument("deviceSerial");
-                String verifyCode = call.argument("verifyCode");
-                cameraNo = call.argument("cameraNo");
+                playUrl = call.argument("playUrl");
+                playType = call.argument("playType");
 
-                EZOpenSDK instance = EZOpenSDK.getInstance();
-                if (instance == null) {
-                    Log.e(TAG, "SDK未初始化");
-                    result.error(
-                            "sdk init error",
-                            "SDK未初始化",
-                            "请先调用EZOpenSDK.initLibWithAppKey()初始化SDK！"
-                    );
-                    return;
+                try {
+                    ezuiPlayer.setUrl("ezopen://open.ys7.com/D86639958/1.rec");
+
+                    ezuiPlayer.setLoadingView(factory.getPlayView());
+
+                    ezuiPlayer.startPlay();
+                    result.success(true);
+                } catch (Exception err) {
+                    Log.e(TAG, "Exception:" + err.getMessage());
+                    result.success(false);
                 }
 
-                if (ezPlayer != null) {
-                    ezPlayer.release();
-                }
-
-                ezPlayer = instance.createPlayer(deviceSerial, cameraNo);
-                boolean b = ezPlayer.setHandler(new EZOpenPlayerHandler());
-//                boolean b = ezPlayer.setSurfaceHold(factory.getPortraitView().getHolder());
-                ezPlayer.setPlayVerifyCode(verifyCode);
-                result.success(b);
             } else if (method.equals("startRealPlay")) {
-                Integer viewId = call.arguments();
-                if (viewId == null) result.success(false);
-                ezPlayer.setSurfaceHold(factory.getSurfaceView(viewId).getHolder());
-                boolean b = ezPlayer.startRealPlay();
-                result.success(b);
+                try {
+                    ezuiPlayer.startPlay();
+                    result.success(true);
+                } catch (Exception err) {
+                    Log.e(TAG, "Exception:" + err.getMessage());
+                    result.success(false);
+                }
+
             } else if (method.equals("stopRealPlay")) {
-                boolean b = ezPlayer.stopRealPlay();
-                result.success(b);
+                try {
+                    ezuiPlayer.stopPlay();
+                    result.success(true);
+                } catch (Exception err) {
+                    Log.e(TAG, "Exception:" + err.getMessage());
+                    result.success(false);
+                }
             } else if (method.equals("release")) {
-                ezPlayer.release();
+                ezuiPlayer.releasePlayer();
             } else if (method.equals("setSoundEnabled")) {
                 Boolean enabled = call.arguments();
                 boolean b;
@@ -115,19 +117,6 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
                 } else {
                     b = ezPlayer.closeSound();
                 }
-                result.success(b);
-            } else if (method.equals("setVideoLevel")) {
-                if (ezPlayer == null) {
-                    Log.e(TAG, "播放器未初始化");
-                    result.error(
-                            "player init error",
-                            "播放器未初始化",
-                            "请先调用EZOpenSDK.initPlayer()初始化播放器！"
-                    );
-                    return;
-                }
-                int level = call.arguments();
-                boolean b = EZOpenSDK.getInstance().setVideoLevel(deviceSerial, cameraNo, level);
                 result.success(b);
             } else if (method.equals("startPlayback")) {
                 long startMillis = call.argument("startMillis");
