@@ -1,0 +1,78 @@
+group 'com.ezplay.ezplay_camera'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.3.0'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 31
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+    }
+
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+        testImplementation 'org.mockito:mockito-core:5.0.0'
+    }
+
+    testOptions {
+        unitTests.all {
+            testLogging {
+               events "passed", "skipped", "failed", "standardOut", "standardError"
+               outputs.upToDateWhen {false}
+               showStandardStreams = true
+            }
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    packagingOptions {
+        pickFirst "lib/arm64-v8a/libgnustl_shared.so"
+        pickFirst "lib/armeabi-v7a/libgnustl_shared.so"
+    }
+}
+
+dependencies {
+    /*萤石SDK核心模块，必须依赖*/
+    implementation 'io.github.ezviz-open:ezviz-sdk:5.3.1'
+    // 4.19.0版本之后需要自行依赖okhttp和gson库
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation 'com.google.code.gson:gson:2.8.5'
+
+    /*视频通话模块，按需使用*/
+//    implementation 'io.github.ezviz-open:videotalk:1.2.7'
+
+    /*码流获取模块，按需使用*/
+//    implementation 'io.github.ezviz-open:streamctrl:1.2.7'
+}
