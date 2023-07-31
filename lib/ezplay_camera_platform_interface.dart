@@ -48,6 +48,10 @@ abstract class EzplayCameraPlatform extends PlatformInterface {
     throw UnimplementedError('startRealPlay() has not been implemented.');
   }
 
+  Future<bool> suspendPlay() {
+    throw UnimplementedError('startRealPlay() has not been implemented.');
+  }
+
   Future<bool> stopRealPlay() {
     throw UnimplementedError('stopRealPlay() has not been implemented.');
   }

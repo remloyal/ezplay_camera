@@ -50,6 +50,11 @@ class EzplaySDK {
     return EzplayCameraPlatform.instance.startRealPlay(viewId);
   }
 
+  //暂停直播
+  static Future<bool> suspendPlay() {
+    return EzplayCameraPlatform.instance.suspendPlay();
+  }
+
   //停止直播
   static Future<void> stopRealPlay() {
     return EzplayCameraPlatform.instance.stopRealPlay();

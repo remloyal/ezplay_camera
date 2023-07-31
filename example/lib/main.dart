@@ -22,7 +22,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: const Text('乐橙云播放器'),
+            title: const Text('萤石云播放器'),
           ),
           body: EZOpenPage()),
     );
@@ -43,7 +43,7 @@ class _EZOpenPageState extends State<EZOpenPage> {
   late String accessToken =
       'at.1wkwg5ta2c5w81d99eq9ridd9wznfw86-8kzlat3hrx-0i3ima4-cfzfbisah';
 
-  late String deviceSerial = 'D75154226';
+  late String deviceSerial = 'E73718179';
   late String verifyCode = 'jsca2020';
   late String cameraNo = '1';
 
@@ -141,6 +141,40 @@ class _EZOpenPageState extends State<EZOpenPage> {
       deviceSerial: deviceSerial,
       verifyCode: verifyCode,
       cameraNo: 1,
+      // toolbar: Container(
+      //     height: 50,
+      //     child: Text(
+      //       '测试一下',
+      //       style: TextStyle(fontSize: 12),
+      //     )),
     );
   }
 }
+
+// FutureBuilder(
+//         future: _initFuture,
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.done) {
+//             return 
+//             Stack(
+//               children: [
+//                 SizedBox(
+//                   width: width,
+//                   height: height,
+//                   child: _EZOpenView(
+//                     onPlatformViewCreated: (int viewId) {
+//                       // _portraitId = viewId;
+//                       _viewId = viewId;
+//                       // _controller.startRealPlay(viewId);
+//                     },
+//                   ),
+//                 ),
+//               ],
+//             );
+//           } else {
+//             return const Center(
+//               child: CircularProgressIndicator(),
+//             );
+//           }
+//         },
+//       ),

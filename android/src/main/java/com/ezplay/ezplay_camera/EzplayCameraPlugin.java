@@ -69,6 +69,7 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
             } else if ("setAccessToken".equals(method)) {
                 String AccessToken = call.arguments();
                 EZOpenSDK.getInstance().setAccessToken(AccessToken);
+                result.success(true);
             } else if ("destroyLib".equals(method)) {
                 EZOpenSDK.finiLib();
             } else if (method.equals("initPlayer")) {
@@ -93,13 +94,16 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
 
                 ezPlayer = instance.createPlayer(deviceSerial, cameraNo);
                 boolean b = ezPlayer.setHandler(new EZOpenPlayerHandler());
-//                boolean b = ezPlayer.setSurfaceHold(factory.getPortraitView().getHolder());
+//                ezPlayer.setSurfaceHold(factory.getView().getHolder());
                 ezPlayer.setPlayVerifyCode(verifyCode);
                 result.success(b);
             } else if (method.equals("startRealPlay")) {
                 Integer viewId = call.arguments();
-                if (viewId == null) result.success(false);
                 ezPlayer.setSurfaceHold(factory.getSurfaceView(viewId).getHolder());
+                boolean b = ezPlayer.startRealPlay();
+                result.success(b);
+            } else if (method.equals("suspendPlay")) {
+//                暂停播放
                 boolean b = ezPlayer.startRealPlay();
                 result.success(b);
             } else if (method.equals("stopRealPlay")) {
@@ -174,7 +178,7 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
     class EZOpenPlayerHandler extends Handler {
         @Override
         public void handleMessage(@NonNull Message msg) {
-            Log.d(TAG, String.valueOf(msg));
+            Log.d("视频播放中", String.valueOf(msg));
             switch (msg.what) {
                 case EZConstants.EZRealPlayConstants.MSG_REALPLAY_PLAY_SUCCESS:
                     Log.d(TAG, "视频播放成功");
@@ -184,14 +188,15 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
                     //播放失败,得到失败信息
                     ErrorInfo errorInfo = (ErrorInfo) msg.obj;
                     //得到播放失败错误码
-//                    int code = errorInfo.errorCode;
-                    //得到播放失败模块错误码
-//                    String moduleCode = errorInfo.moduleCode;
-                    //得到播放失败描述
-//                    String description = errorInfo.description;
-                    //得到播放失败解决方方案
-//                    String solution = errorInfo.sulution;
+                    int code = errorInfo.errorCode;
+//                    得到播放失败模块错误码
+                    String moduleCode = errorInfo.moduleCode;
+//                    得到播放失败描述
+                    String description = errorInfo.description;
+//                    得到播放失败解决方方案
+                    String solution = errorInfo.sulution;
                     Log.d(TAG, "视频播放失败, " + errorInfo);
+
                     break;
                 case EZConstants.MSG_VIDEO_SIZE_CHANGED:
                     //解析出视频画面分辨率回调

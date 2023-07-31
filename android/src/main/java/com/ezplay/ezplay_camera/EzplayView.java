@@ -4,8 +4,6 @@ import android.content.Context;
 import android.view.SurfaceView;
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
 import io.flutter.plugin.platform.PlatformView;
 
 public class EzplayView implements PlatformView {
@@ -24,7 +22,6 @@ public class EzplayView implements PlatformView {
         return surfaceView;
     }
 
-    @Nullable
     @Override
     public View getView() {
         return surfaceView;

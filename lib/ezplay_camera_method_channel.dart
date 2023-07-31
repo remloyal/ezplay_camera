@@ -47,6 +47,11 @@ class MethodChannelEzplayCamera extends EzplayCameraPlatform {
   }
 
   @override
+  Future<bool> suspendPlay() async {
+    return await methodChannel.invokeMethod('suspendPlay');
+  }
+
+  @override
   Future<bool> stopRealPlay() async {
     return await methodChannel.invokeMethod('stopRealPlay');
   }
