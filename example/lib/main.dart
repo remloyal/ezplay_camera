@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
           appBar: AppBar(
             title: const Text('萤石云播放器'),
           ),
-          body: EZOpenPage()),
+          body: const EZOpenPage()),
     );
   }
 }
@@ -52,6 +52,10 @@ class _EZOpenPageState extends State<EZOpenPage> {
   TextEditingController deviceSerialController = TextEditingController();
   TextEditingController verifyCodeController = TextEditingController();
   TextEditingController cameraNoController = TextEditingController();
+
+  // 是否回放
+  late bool playback = true;
+
   @override
   void initState() {
     super.initState();
@@ -103,6 +107,36 @@ class _EZOpenPageState extends State<EZOpenPage> {
             cameraNo = value;
           },
           decoration: const InputDecoration(prefixIcon: Text('通道')),
+        ),
+        Row(
+          children: <Widget>[
+            const Text("直播"),
+            Radio(
+              // 按钮的值
+              value: true,
+              // 改变事件
+              onChanged: (value) {
+                setState(() {
+                  playback = value!;
+                });
+              },
+              // 按钮组的值
+              groupValue: playback,
+            ),
+            const SizedBox(
+              width: 20,
+            ),
+            const Text("回放"),
+            Radio(
+              value: false,
+              onChanged: (value) {
+                setState(() {
+                  playback = value!;
+                });
+              },
+              groupValue: playback,
+            ),
+          ],
         ),
         TextButton(
             onPressed: () {

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:ezplay_camera/ezplay_plugin.dart';
+import 'package:ezplay_camera/player_date_time_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -19,7 +20,28 @@ class EzplayController {
   final String appKey;
   //是否开启sdk日志，默认不开启
   final bool? logEnabled;
+
   String accessToken;
+
+  late int osdTime = 0;
+
+  // 播放状态
+  late bool playing = false;
+  // 是否静音
+  late bool mute = true;
+
+  // 是否回放
+  late bool playback = false;
+
+  //回放开始时间
+  DateTime? _startTime;
+
+  DateTime? get startTime => _startTime;
+
+  //回放结束时间
+  DateTime? _endTime;
+
+  DateTime? get endTime => _endTime;
 
   EzplayController(
       {required this.appKey,
@@ -44,24 +66,63 @@ class EzplayController {
     }
   }
 
+  // 初始化播放
   void startRealPlay(int viewId) {
     EzplaySDK.startRealPlay(viewId);
   }
 
+  // 开始直播
   void suspendPlay() {
     EzplaySDK.suspendPlay();
   }
 
+  // 暂停直播
   void stopRealPlay() async {
     await EzplaySDK.stopRealPlay();
   }
 
+  // 停止直播
   void releasePlayer() async {
     stopRealPlay();
     await EzplaySDK.releasePlayer();
   }
+
+  // 开始远程SD卡回放---按时间回放
+  void startPlayback(int startMillis, int endMillis) async {
+    stopRealPlay();
+    playback = await EzplaySDK.startPlayback(startMillis, endMillis);
+    if (playback) {
+    } else {}
+  }
+
+  // 停止远程回放
+  void stopPlayback() async {
+    await EzplaySDK.stopPlayback();
+  }
+
+  // 暂停远程回放播放
+  void pausePlayback() async {
+    await EzplaySDK.pausePlayback();
+  }
+
+  // 恢复远程回放播放
+  void resumePlayback() async {
+    await EzplaySDK.resumePlayback();
+  }
+
+  // 获取当前播放时间戳
+  Future<int> getOSDTime() async {
+    osdTime = await EzplaySDK.getOSDTime();
+    return osdTime;
+  }
+
+  //开启/关闭声音
+  Future<bool> setSoundEnabled(bool enabled) async {
+    return EzplaySDK.setSoundEnabled(enabled);
+  }
 }
 
+// 显示组件
 class EzplayView extends StatefulWidget {
   final EzplayController controller;
 
@@ -69,13 +130,17 @@ class EzplayView extends StatefulWidget {
   final String verifyCode;
   final int cameraNo;
   final Widget? toolbar;
+  final double? width;
+  final double? height;
   const EzplayView(
       {super.key,
       required this.controller,
       required this.deviceSerial,
       required this.verifyCode,
       required this.cameraNo,
-      this.toolbar});
+      this.toolbar,
+      this.width,
+      this.height});
 
   @override
   State<EzplayView> createState() => _EzplayViewState();
@@ -83,11 +148,8 @@ class EzplayView extends StatefulWidget {
 
 class _EzplayViewState extends State<EzplayView> {
   late EzplayController _controller;
-  late bool _playing;
-  late bool _mute;
-  late StateSetter _toolbarSetter;
-
-  late Future<void> _initFuture;
+  late double width;
+  late double height;
 
   late int _viewId = 0;
 
@@ -95,8 +157,6 @@ class _EzplayViewState extends State<EzplayView> {
   void initState() {
     super.initState();
     _controller = widget.controller;
-    _playing = false;
-    _mute = false;
     _controller
         .initPlayer(widget.deviceSerial, widget.verifyCode, widget.cameraNo)
         .then((value) {
@@ -114,48 +174,36 @@ class _EzplayViewState extends State<EzplayView> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    double width = size.width;
-    double height = width * 9 / 16;
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        print('orientation ==========> $orientation');
-        if (orientation == Orientation.portrait) {
-          print('orientation ==> 当前为竖屏');
-        } else {
-          print('orientation ==>当前为横屏');
-        }
-        print(
-            'orientation ==> ${orientation == Orientation.portrait ? true : false}');
-        return Container(
-          color: Colors.black,
-          // width: width,
-          // height: height,
-          child: SizedBox(
-              width: width,
-              height: height,
-              child: Stack(
-                children: [
-                  _EZOpenView(
-                    onPlatformViewCreated: (int viewId) {
-                      // _portraitId = viewId;
-                      _viewId = viewId;
-                      // _controller.startRealPlay(viewId);
-                    },
-                  ),
-                  Positioned(
-                      bottom: 0,
-                      left: 0,
-                      child: SizedBox(
-                        width: width,
-                        child: Toolbar(
-                          controller: _controller,
-                          viewId: _viewId!,
-                        ),
-                      ))
-                ],
-              )),
-        );
-      },
+    width = widget.width != null ? widget.width! : size.width;
+    height = widget.height != null ? widget.height! : width * 9 / 16;
+    return Container(
+      color: Colors.black,
+      // width: width,
+      // height: height,
+      child: SizedBox(
+          width: width,
+          height: height,
+          child: Stack(
+            children: [
+              _EZOpenView(
+                onPlatformViewCreated: (int viewId) {
+                  // _portraitId = viewId;
+                  _viewId = viewId;
+                  // _controller.startRealPlay(viewId);
+                },
+              ),
+              Positioned(
+                  bottom: 0,
+                  left: 0,
+                  child: SizedBox(
+                    width: width,
+                    child: Toolbar(
+                      controller: _controller,
+                      viewId: _viewId!,
+                    ),
+                  ))
+            ],
+          )),
     );
   }
 }
@@ -177,6 +225,7 @@ class _EZOpenView extends StatelessWidget {
   }
 }
 
+// 控制组件
 class Toolbar extends StatefulWidget {
   const Toolbar({super.key, required this.controller, required this.viewId});
   final EzplayController controller;
@@ -223,7 +272,7 @@ class _ToolbarState extends State<Toolbar> {
       _controller.stopRealPlay();
     } else {
       _playing = true;
-      _controller.startRealPlay(_viewId!);
+      _controller.suspendPlay();
     }
     _toolbarSetter(() {});
   }
@@ -235,7 +284,7 @@ class _ToolbarState extends State<Toolbar> {
         _toolbarSetter = setter;
 
         Widget toolbar = Container(
-          color: Colors.white54,
+          color: const Color.fromRGBO(255, 255, 255, 0.3),
           height: 50,
           child: Column(
             children: [
@@ -257,6 +306,7 @@ class _ToolbarState extends State<Toolbar> {
                   GestureDetector(
                     onTap: () {
                       _mute = !_mute;
+                      _controller.setSoundEnabled(_mute);
                       _toolbarSetter(() {});
                     },
                     child: _mute
@@ -265,6 +315,25 @@ class _ToolbarState extends State<Toolbar> {
                   ),
                   TextButton(onPressed: () {}, child: Text("清晰度")),
                   TextButton(onPressed: () {}, child: Text("模式")),
+                  TextButton(
+                      onPressed: () {
+                        showPlayerDateTimePicker(context, _controller.startTime,
+                                _controller.endTime)
+                            .then((value) {
+                          print(
+                              'showPlayerDateTimePicker ============> ${value![0]} ${value![1]}');
+                          // if (value == null) return;
+                          // _controller.stopPlay();
+                          // _controller.isReal = false;
+                          _controller._startTime = value[0];
+                          _controller._endTime = value[1];
+                          int starttime = value[0].millisecondsSinceEpoch;
+                          int endtime = value[1].millisecondsSinceEpoch;
+
+                          _controller.startPlayback(starttime, endtime);
+                        });
+                      },
+                      child: Text("回放")),
                 ],
               )
             ],
@@ -287,30 +356,5 @@ class _ToolbarState extends State<Toolbar> {
           overlays: SystemUiOverlay.values);
       _landscape = true;
     }
-
-    // _landscape = true;
-    // // SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-    // if (_playing) {
-    //   _controller.stopRealPlay();
-    // }
-    // showDialog(
-    //     useSafeArea: false,
-    //     context: context,
-    //     builder: (BuildContext ctx) {
-    //       return Container(
-    //         width: 200,
-    //         height: 200,
-    //         child: Text("全屏"),
-    //       );
-    //     }).then((value) {
-    //   _landscape = false;
-    //   _viewId = _portraitId;
-    //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-    //   // SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    //   if (_playing) {
-    //     _controller.startRealPlay(_viewId!);
-    //   }
-    // });
   }
 }

@@ -51,116 +51,129 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         try {
             String method = call.method;
-            if ("initAppKey".equals(method)) {
-                String app_key = call.arguments();
-                boolean b = EZOpenSDK.initLib(application, app_key);
-                result.success(b);
-            }
-            if ("setLogEnabled".equals(method)) {
-                Boolean enable = call.arguments();
-                if (enable != null) {
-                    EZOpenSDK.showSDKLog(enable);
-                }
-                result.success(enable);
-            } else if ("initAppKey".equals(method)) {
-                String app_key = call.arguments();
-                boolean b = EZOpenSDK.initLib(application, app_key);
-                result.success(b);
-            } else if ("setAccessToken".equals(method)) {
-                String AccessToken = call.arguments();
-                EZOpenSDK.getInstance().setAccessToken(AccessToken);
-                result.success(true);
-            } else if ("destroyLib".equals(method)) {
-                EZOpenSDK.finiLib();
-            } else if (method.equals("initPlayer")) {
-                deviceSerial = call.argument("deviceSerial");
-                String verifyCode = call.argument("verifyCode");
-                cameraNo = call.argument("cameraNo");
+            switch (call.method) {
+                case "setLogEnabled":
+                    Boolean enable = call.arguments();
+                    if (enable != null) {
+                        EZOpenSDK.showSDKLog(enable);
+                    }
+                    result.success(enable);
+                    break;
+                case "initAppKey":
+                    String app_key = call.arguments();
+                    boolean b = EZOpenSDK.initLib(application, app_key);
+                    result.success(b);
+                    break;
+                case "setAccessToken":
+                    String AccessToken = call.arguments();
+                    EZOpenSDK.getInstance().setAccessToken(AccessToken);
+                    result.success(true);
+                    break;
+                case "destroyLib":
+                    EZOpenSDK.finiLib();
+                    break;
+                case "initPlayer":
+                    deviceSerial = call.argument("deviceSerial");
+                    String verifyCode = call.argument("verifyCode");
+                    cameraNo = call.argument("cameraNo");
 
-                EZOpenSDK instance = EZOpenSDK.getInstance();
-                if (instance == null) {
-                    Log.e(TAG, "SDK未初始化");
-                    result.error(
-                            "sdk init error",
-                            "SDK未初始化",
-                            "请先调用EZOpenSDK.initLibWithAppKey()初始化SDK！"
-                    );
-                    return;
-                }
+                    EZOpenSDK instance = EZOpenSDK.getInstance();
+                    if (instance == null) {
+                        Log.e(TAG, "SDK未初始化");
+                        result.error(
+                                "sdk init error",
+                                "SDK未初始化",
+                                "请先调用EZOpenSDK.initLibWithAppKey()初始化SDK！"
+                        );
+                        return;
+                    }
 
-                if (ezPlayer != null) {
-                    ezPlayer.release();
-                }
+                    if (ezPlayer != null) {
+                        ezPlayer.release();
+                    }
 
-                ezPlayer = instance.createPlayer(deviceSerial, cameraNo);
-                boolean b = ezPlayer.setHandler(new EZOpenPlayerHandler());
+                    ezPlayer = instance.createPlayer(deviceSerial, cameraNo);
+                    boolean state = ezPlayer.setHandler(new EZOpenPlayerHandler());
 //                ezPlayer.setSurfaceHold(factory.getView().getHolder());
-                ezPlayer.setPlayVerifyCode(verifyCode);
-                result.success(b);
-            } else if (method.equals("startRealPlay")) {
-                Integer viewId = call.arguments();
-                ezPlayer.setSurfaceHold(factory.getSurfaceView(viewId).getHolder());
-                boolean b = ezPlayer.startRealPlay();
-                result.success(b);
-            } else if (method.equals("suspendPlay")) {
-//                暂停播放
-                boolean b = ezPlayer.startRealPlay();
-                result.success(b);
-            } else if (method.equals("stopRealPlay")) {
-                boolean b = ezPlayer.stopRealPlay();
-                result.success(b);
-            } else if (method.equals("release")) {
-                ezPlayer.release();
-            } else if (method.equals("setSoundEnabled")) {
-                Boolean enabled = call.arguments();
-                boolean b;
-                if (Boolean.TRUE.equals(enabled)) {
-                    b = ezPlayer.openSound();
-                } else {
-                    b = ezPlayer.closeSound();
-                }
-                result.success(b);
-            } else if (method.equals("setVideoLevel")) {
-                if (ezPlayer == null) {
-                    Log.e(TAG, "播放器未初始化");
-                    result.error(
-                            "player init error",
-                            "播放器未初始化",
-                            "请先调用EZOpenSDK.initPlayer()初始化播放器！"
-                    );
-                    return;
-                }
-                int level = call.arguments();
-                boolean b = EZOpenSDK.getInstance().setVideoLevel(deviceSerial, cameraNo, level);
-                result.success(b);
-            } else if (method.equals("startPlayback")) {
-                long startMillis = call.argument("startMillis");
-                long endMillis = call.argument("endMillis");
-                Calendar start = Calendar.getInstance();
-                start.setTimeInMillis(startMillis);
-                Calendar end = Calendar.getInstance();
-                end.setTimeInMillis(endMillis);
-                boolean b = ezPlayer.startPlayback(start, end);
-                result.success(b);
-            } else if (method.equals("stopPlayback")) {
-                boolean b = ezPlayer.stopPlayback();
-                result.success(b);
-            } else if (call.method.equals("getOSDTime")) {
-                Calendar osdTime = ezPlayer.getOSDTime();
-                if (null != osdTime) {
-                    long timeInMillis = osdTime.getTimeInMillis();
-                    result.success(timeInMillis);
-                } else {
-                    result.success(0);
-                }
-            } else if (call.method.equals("pausePlayback")) {
-                boolean b = ezPlayer.pausePlayback();// 暂停回放
-                result.success(b);
-            } else if (call.method.equals("resumePlayback")) {
-                boolean b = ezPlayer.resumePlayback();// 恢复回放
-                result.success(b);
-            } else {
-                result.notImplemented();
+                    ezPlayer.setPlayVerifyCode(verifyCode);
+                    result.success(state);
+                    break;
+                case "startRealPlay":
+                    Integer viewId = call.arguments();
+                    ezPlayer.setSurfaceHold(factory.getSurfaceView(viewId).getHolder());
+                    boolean startState = ezPlayer.startRealPlay();
+                    result.success(startState);
+                    break;
+                case "suspendPlay":
+                    //                暂停播放
+                    result.success(ezPlayer.startRealPlay());
+                    break;
+                case "stopRealPlay":
+                    result.success(ezPlayer.stopRealPlay());
+                    break;
+                case "release":
+                    ezPlayer.release();
+                    result.success(true);
+                    break;
+                case "setSoundEnabled":
+                    Boolean enabled = call.arguments();
+                    boolean enabledState;
+                    if (Boolean.TRUE.equals(enabled)) {
+                        enabledState = ezPlayer.openSound();
+                    } else {
+                        enabledState = ezPlayer.closeSound();
+                    }
+                    result.success(enabledState);
+                    break;
+                case "setVideoLevel":
+                    if (ezPlayer == null) {
+                        Log.e(TAG, "播放器未初始化");
+                        result.error(
+                                "player init error",
+                                "播放器未初始化",
+                                "请先调用EZOpenSDK.initPlayer()初始化播放器！"
+                        );
+                        return;
+                    }
+                    int level = call.arguments();
+                    boolean b1 = EZOpenSDK.getInstance().setVideoLevel(deviceSerial, cameraNo, level);
+                    result.success(b1);
+                    break;
+                case "startPlayback":
+                    long startMillis = call.argument("startMillis");
+                    long endMillis = call.argument("endMillis");
+                    Calendar start = Calendar.getInstance();
+                    start.setTimeInMillis(startMillis);
+                    Calendar end = Calendar.getInstance();
+                    end.setTimeInMillis(endMillis);
+                    boolean ment = ezPlayer.startPlayback(start, end);
+                    result.success(ment);
+                    break;
+
+                case "stopPlayback":
+                    result.success(ezPlayer.stopPlayback());
+                    break;
+                case "getOSDTime":
+                    Calendar osdTime = ezPlayer.getOSDTime();
+                    if (osdTime != null) {
+                        long timeInMillis = osdTime.getTimeInMillis();
+                        result.success(timeInMillis);
+                    } else {
+                        result.success(0);
+                    }
+                    break;
+
+                case "pausePlayback":
+                    // 暂停远程回放播放
+                    result.success(ezPlayer.pausePlayback());
+                    break;
+                case "resumePlayback":
+                    // 恢复远程回放播放
+                    result.success(ezPlayer.resumePlayback());
+                    break;
+                default:
+                    result.notImplemented();
+                    break;
             }
 
         } catch (Exception e) {
@@ -215,5 +228,6 @@ public class EzplayCameraPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
     }
+
 
 }
