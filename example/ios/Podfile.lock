@@ -1,5 +1,7 @@
 PODS:
+  - EZOpenSDK (5.3.3)
   - ezplay_camera (0.0.1):
+    - EZOpenSDK (~> 5.3.1)
     - Flutter
   - Flutter (1.0.0)
   - integration_test (0.0.1):
@@ -10,6 +12,10 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
 
+SPEC REPOS:
+  https://mirrors.tuna.tsinghua.edu.cn/git/CocoaPods/Specs.git:
+    - EZOpenSDK
+
 EXTERNAL SOURCES:
   ezplay_camera:
     :path: ".symlinks/plugins/ezplay_camera/ios"
@@ -19,10 +25,11 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  ezplay_camera: 4068a79eb3f5ad79eb8fcc917c6f11edde6cc456
+  EZOpenSDK: ca6f078692308fce63b874dd2aaa27999218970a
+  ezplay_camera: c248b7de0968b967ef22b66f97de526433abf615
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   integration_test: 13825b8a9334a850581300559b8839134b124670
 
-PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189
+PODFILE CHECKSUM: d3b9948453a46a07fe7c6b64751e7b44c1f9fbd8
 
 COCOAPODS: 1.12.1

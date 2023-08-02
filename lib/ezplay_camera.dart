@@ -220,8 +220,19 @@ class _EZOpenView extends StatelessWidget {
         viewType: 'ezplay_view',
         onPlatformViewCreated: onPlatformViewCreated,
       );
+    } else if (Platform.isIOS) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.black,
+        ),
+        child: UiKitView(
+          viewType: "ezplay_view",
+          onPlatformViewCreated: onPlatformViewCreated,
+        ),
+      );
+    } else {
+      return ErrorWidget('暂不支持该平台！');
     }
-    return ErrorWidget('暂不支持该平台！');
   }
 }
 
